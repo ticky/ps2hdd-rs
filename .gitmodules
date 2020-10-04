@@ -1,0 +1,3 @@
+[submodule "vendor/pfsshell"]
+	path = vendor/pfsshell
+	url = https://github.com/ps2homebrew/pfsshell.git

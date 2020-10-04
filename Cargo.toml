@@ -1,0 +1,12 @@
+[package]
+name = "pfsfuse"
+version = "0.1.0"
+authors = ["Jessica Stokes <hello@jessicastokes.net>"]
+edition = "2018"
+
+[dependencies]
+libc = "0.2.78"
+
+[build-dependencies]
+bindgen = "0.55.1"
+meson = "1.0.0"
