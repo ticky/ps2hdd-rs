@@ -1,5 +1,5 @@
 [package]
-name = "pfsfuse"
+name = "ps2hdd-sys"
 version = "0.1.0"
 authors = ["Jessica Stokes <hello@jessicastokes.net>"]
 edition = "2018"
