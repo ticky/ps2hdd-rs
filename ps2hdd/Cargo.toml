@@ -1,0 +1,10 @@
+[package]
+name = "ps2hdd"
+version = "0.1.0"
+authors = ["Jessica Stokes <hello@jessicastokes.net>"]
+edition = "2018"
+
+[dependencies]
+
+[dependencies.ps2hdd-sys]
+  path = "../ps2hdd-sys"
