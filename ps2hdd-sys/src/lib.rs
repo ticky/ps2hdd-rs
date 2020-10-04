@@ -2,6 +2,10 @@
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 
+//! Bindings for `libps2hdd`
+//! (the library version of [`pfsshell`](https://github.com/ps2homebrew/pfsshell)),
+//! primarily generated using [`bindgen`](https://crates.io/crates/bindgen)
+
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
 extern "C" {
