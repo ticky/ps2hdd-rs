@@ -22,7 +22,71 @@ mod tests {
     use super::*;
     use std::fs::File;
 
+    // Fun problems; we need to definitely absolutely not run these in parallel
+    // which makes sense, I was figuring I'd need to do mutexing later, so,
+    // now I know for sure. lmao.
+    use serial_test::serial;
+
+    fn util_set_atad_device_path(path: &str) {
+        let name_slice = std::ffi::CString::new(path)
+            .expect("could not convert atad_device_path slice to C String");
+
+        let length = name_slice.as_bytes().len();
+
+        if length > 255 {
+            panic!("util_set_atad_device_path: string length {} is too long to be null-terminated", length)
+        }
+
+        name_slice
+            .as_bytes()
+            .iter()
+            .enumerate()
+            .for_each(|(index, byte)| {
+                unsafe {
+                    atad_device_path[index] = *byte as i8;
+                    if index == length {
+                        atad_device_path[index + 1] = 0x00;
+                    }
+                }
+            });
+
+        unsafe {
+            let demo_file_path = std::ffi::CStr::from_ptr(atad_device_path.as_ptr())
+                .to_str()
+                .expect("could not convert the updated device path to a String");
+            assert_eq!(
+                demo_file_path, path,
+                "util_set_atad_device_path: updating the variable didn't work, weird!"
+            );
+        }
+    }
+
     #[test]
+    #[serial(atad_device_path)]
+    fn multiple_init_calls() {
+        unsafe {
+            let demo_file_path = std::ffi::CStr::from_ptr(atad_device_path.as_ptr())
+                .to_str()
+                .expect("could not convert the default device path to a String");
+            assert_eq!(
+                demo_file_path, "hdd.img",
+                "not using the default hdd.img file (are you doing multiple threads?)"
+            );
+
+            let demo_1_path = "hdd0.img";
+            util_set_atad_device_path(demo_1_path);
+
+            // TODO: I was going to check that calling `_init_apa`
+            // multiple times works okay, and doesn't end up breaking things
+            // but instead I am going to play some Yakuza 0 for now.
+
+            // Always re-set this after each test
+            util_set_atad_device_path("hdd.img");
+        }
+    }
+
+    #[test]
+    #[serial(atad_device_path)]
     fn format_list_partitions_and_write() {
         unsafe {
             let demo_file_path = std::ffi::CStr::from_ptr(atad_device_path.as_ptr())
@@ -41,15 +105,38 @@ mod tests {
                 .set_len(6 * 1024 * 1024 * 1024)
                 .expect("couldn't make demo file the right size");
 
+            // NOTE: The `_init_*` methods initialise each driver, adding it to
+            // the pool of "drives" available to iomanX, with each one stored
+            // in `pfsshell/subprojects/iomanX/iomanX.c`'s `dev_list` variable.
+
+            // `_init_apa` internally opens the file at
+            // `atad_device_path`, and provides the "hdd0" device,
+            // which is implicitly mounted once this has been called.
+            //
+            // The `hdd0` device allows listing and manipulating partitions.
             assert_eq!(_init_apa(0, std::ptr::null_mut()), 0, "_init_apa failed");
 
+            // `_init_pfs` provides the "pfs0" device,
+            // which is not automatically mounted.
+            //
+            // The `pfs0` device allows access to a PFS file system
+            // of a given partition within the `hdd0` structure.
             assert_eq!(_init_pfs(0, std::ptr::null_mut()), 0, "_init_pfs failed");
 
-            assert_eq!(
-                _init_hdlfs(0, std::ptr::null_mut()),
-                0,
-                "_init_hdlfs failed"
-            );
+            // TODO: Turns out this isn't necessary for anything pfsshell can
+            // do, (no code path mounts to hdl0?) but perhaps it's still worth
+            // keeping? Seems like HDLFS could possibly be browsed by this.
+
+            // `_init_hdlfs` provides the `hdl0` device,
+            // which is not automatically mounted.
+            //
+            // The `hdl0` device allows access to an HDLFS file system
+            // of a given partition within the `hdd0` structure.
+            // assert_eq!(
+            //     _init_hdlfs(0, std::ptr::null_mut()),
+            //     0,
+            //     "_init_hdlfs failed"
+            // );
 
             let format_path = std::ffi::CString::new("hdd0:").expect("couldn't convert string");
 
@@ -205,6 +292,11 @@ mod tests {
             );
 
             iomanx_close(root_dh);
+
+            // This cleans up ATAD's real file pointer, but nothing else;
+            // technically between tests the rest of the infrastructure is
+            // still prepared to run. Alas.
+            atad_close();
 
             assert_eq!(iomanx_umount(pfs_path.as_ptr()), 0, "iomanx_umount failed");
 

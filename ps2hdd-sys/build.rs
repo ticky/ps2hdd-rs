@@ -25,14 +25,16 @@ fn main() {
         // bindings for.
         .header("wrapper.h")
         // Stuff from `hl.h`
-        .whitelist_function("copyfrom")
-        .whitelist_function("copyto")
-        .whitelist_function("initialize")
-        .whitelist_function("list_dir_objects")
-        .whitelist_function("ls")
-        .whitelist_function("lspart")
-        .whitelist_function("mkfs")
-        .whitelist_function("mkpart")
+        // NOTE some of these appear to be slightly-wonky
+        // wrappers of underlying iomanX functionality
+        // .whitelist_function("copyfrom")
+        // .whitelist_function("copyto")
+        // .whitelist_function("initialize")
+        // .whitelist_function("list_dir_objects")
+        // .whitelist_function("ls")
+        // .whitelist_function("lspart")
+        // .whitelist_function("mkfs")
+        // .whitelist_function("mkpart")
         // Stuff from `iomanX_port.h`
         .whitelist_var("IOMANX_O_APPEND")
         .whitelist_var("IOMANX_O_CREAT")
@@ -108,7 +110,12 @@ fn main() {
         .whitelist_function("iomanx_readlink")
         .whitelist_function("iomanx_ioctl2")
         // Stuff from `fakeps2sdk/atad.c`
+        .whitelist_var("hdd_length")
         .whitelist_var("atad_device_path")
+        .whitelist_function("atad_close")
+        // Stuff from `fakeps2sdk/include/iomanX.h`
+        // .whitelist_type("iop_device_t")
+        // .whitelist_var("dev_list")
         // Tell cargo to invalidate the built crate whenever any of the
         // included header files changed.
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))
