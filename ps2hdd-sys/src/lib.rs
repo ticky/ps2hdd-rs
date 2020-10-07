@@ -120,6 +120,8 @@ mod tests {
             dirents.push(temp_dirent.clone());
         }
 
+        println!("dirents: {:?}", dirents);
+
         unsafe {
             iomanx_close(device_handle);
         }
@@ -227,6 +229,7 @@ mod tests {
                     std::ffi::CStr::from_ptr(dirent.name.as_ptr())
                         .to_str()
                         .expect("could not convert partition entry name")
+                        .to_owned()
                 })
                 .collect();
 
@@ -314,6 +317,7 @@ mod tests {
                     std::ffi::CStr::from_ptr(dirent.name.as_ptr())
                         .to_str()
                         .expect("could not convert directory entry name")
+                        .to_owned()
                 })
                 .collect();
 
@@ -374,6 +378,7 @@ mod tests {
                     std::ffi::CStr::from_ptr(dirent.name.as_ptr())
                         .to_str()
                         .expect("could not convert partition entry name")
+                        .to_owned()
                 })
                 .collect();
 
