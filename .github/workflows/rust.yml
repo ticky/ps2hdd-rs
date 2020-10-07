@@ -35,7 +35,7 @@ jobs:
       run: cargo build --verbose
 
     - name: Test
-      run: cargo test --verbose -- --no-capture
+      run: cargo test --verbose -- --nocapture
 
     - name: Clippy
       uses: actions-rs/clippy-check@v1
