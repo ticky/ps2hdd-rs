@@ -116,11 +116,8 @@ mod tests {
 
             result > 0
         } {
-            println!("dirent: {:?}", temp_dirent);
-            dirents.push(temp_dirent.clone());
+            dirents.push(temp_dirent);
         }
-
-        println!("dirents: {:?}", dirents);
 
         unsafe {
             iomanx_close(device_handle);
