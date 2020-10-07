@@ -117,7 +117,7 @@ mod tests {
             result > 0
         } {
             println!("dirent: {:?}", temp_dirent);
-            dirents.push(temp_dirent);
+            dirents.push(temp_dirent.clone());
         }
 
         unsafe {
