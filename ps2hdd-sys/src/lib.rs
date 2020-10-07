@@ -17,6 +17,16 @@ extern "C" {
     ) -> std::os::raw::c_int;
 }
 
+impl std::fmt::Debug for iox_dirent_t {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let name = unsafe { std::ffi::CStr::from_ptr(self.name.as_ptr()) };
+        formatter.debug_struct("iox_dirent_t")
+            .field("name", &format_args!("{:?}", name))
+            .field("stat", &self.stat)
+            .finish()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -73,6 +83,7 @@ mod tests {
     /// reads the list of the items within that directory.
     fn util_iomanx_dopen_dread(path: &std::ffi::CString) -> Vec<iox_dirent_t> {
         let mut temp_dirent: iox_dirent_t = unsafe { std::mem::zeroed() };
+
         let mut dirents = Vec::new();
 
         let device_handle = unsafe { iomanx_dopen(path.as_ptr()) };
@@ -105,6 +116,7 @@ mod tests {
 
             result > 0
         } {
+            println!("dirent: {:?}", temp_dirent);
             dirents.push(temp_dirent);
         }
 

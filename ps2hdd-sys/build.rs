@@ -24,6 +24,7 @@ fn main() {
         // The input header we would like to generate
         // bindings for.
         .header("wrapper.h")
+        .derive_debug(true)
         // Stuff from `hl.h`
         // NOTE some of these appear to be slightly-wonky
         // wrappers of underlying iomanX functionality

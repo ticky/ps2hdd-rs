@@ -12,7 +12,7 @@ env:
 jobs:
   build:
 
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout
@@ -31,14 +31,14 @@ jobs:
           meson
           ninja
 
+    - name: Build
+      run: cargo build --verbose
+
+    - name: Test
+      run: cargo test --verbose -- --no-capture
+
     - name: Clippy
       uses: actions-rs/clippy-check@v1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         args: --all-features
-
-    - name: Build
-      run: cargo build --verbose
-
-    - name: Test
-      run: cargo test --verbose
