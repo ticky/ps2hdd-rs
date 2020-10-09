@@ -11,34 +11,56 @@ env:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-      with:
-        submodules: true
+      - &CHECKOUT
+        name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: true
 
-    - name: Set up Python
-      uses: actions/setup-python@v1
+      - &PYTHON
+        name: Set up Python
+        uses: actions/setup-python@v1
 
-    # pfsshell uses meson and ninja; we integrated them into the Rust build, but still need to install them
-    - name: Set up meson and ninja
-      uses: BSFishy/pip-action@v1
-      with:
-        packages: |
-          meson
-          ninja
+      # pfsshell uses meson and ninja; we integrated them into the Rust build, but still need to install them
+      - &PYTHON_DEPS
+        name: Set up meson and ninja
+        uses: BSFishy/pip-action@v1
+        with:
+          packages: |
+            meson
+            ninja
 
-    - name: Build
-      run: cargo build --verbose
+      - name: Build
+        run: cargo build --verbose
 
-    - name: Test
-      run: cargo test --verbose -- --nocapture
+  clippy:
+    runs-on: ubuntu-latest
+    steps:
+      - *CHECKOUT
 
-    - name: Clippy
-      uses: actions-rs/clippy-check@v1
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        args: --all-features
+      - *PYTHON
+
+      - *PYTHON_DEPS
+
+      - name: Clippy
+        uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --all-features
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - *CHECKOUT
+
+      - *PYTHON
+
+      - *PYTHON_DEPS
+
+      - name: Test & Coverage Reporting
+        uses: actions-rs/tarpaulin@v0.1
+
+      - name: Upload to codecov.io
+        uses: codecov/codecov-action@v1.0.2
