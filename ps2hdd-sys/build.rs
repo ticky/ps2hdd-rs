@@ -114,9 +114,13 @@ fn main() {
         .whitelist_var("hdd_length")
         .whitelist_var("atad_device_path")
         .whitelist_function("atad_close")
-        // Stuff from `fakeps2sdk/include/iomanX.h`
-        // .whitelist_type("iop_device_t")
-        // .whitelist_var("dev_list")
+        // Stuff from `hdlfs/hdlfs.h`
+        .whitelist_var("HDL_FS_MAGIC")
+        .whitelist_var("APA_FLAG_SUB")
+        .whitelist_var("HDL_INFO_MAGIC")
+        .whitelist_var("HDL_GAME_DATA_OFFSET")
+        .whitelist_type("hdl_game_info")
+        .whitelist_type("part_specs_t")
         // Tell cargo to invalidate the built crate whenever any of the
         // included header files changed.
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))

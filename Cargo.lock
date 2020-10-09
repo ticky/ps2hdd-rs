@@ -257,7 +257,9 @@ dependencies = [
 name = "ps2hdd"
 version = "0.1.0"
 dependencies = [
+ "libc",
  "ps2hdd-sys",
+ "serial_test",
 ]
 
 [[package]]

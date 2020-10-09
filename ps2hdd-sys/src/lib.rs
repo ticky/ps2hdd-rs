@@ -403,6 +403,8 @@ mod tests {
             "unexpected partition list"
         );
 
+        unsafe { atad_close() };
+
         std::fs::remove_file(demo_file_path).expect("could not delete demo file");
         std::fs::remove_file(demo_1_path).expect("could not delete demo 1 file");
 
