@@ -10,7 +10,7 @@ fn main() {
 
     // Tell cargo to tell rustc to link the ps2hdd shared library.
     println!("cargo:rustc-link-lib=ps2hdd");
-    println!("cargo:rustc-link-search=native={}", build_path);
+    println!("cargo:rustc-link-search={}", build_path);
 
     meson::build("vendor/pfsshell", build_path);
 
