@@ -13,19 +13,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - &CHECKOUT
-        name: Checkout
+      - name: Checkout
         uses: actions/checkout@v2
         with:
           submodules: true
 
-      - &PYTHON
-        name: Set up Python
+      - name: Set up Python
         uses: actions/setup-python@v1
 
       # pfsshell uses meson and ninja; we integrated them into the Rust build, but still need to install them
-      - &PYTHON_DEPS
-        name: Set up meson and ninja
+      - name: Set up meson and ninja
         uses: BSFishy/pip-action@v1
         with:
           packages: |
@@ -38,11 +35,21 @@ jobs:
   clippy:
     runs-on: ubuntu-latest
     steps:
-      - *CHECKOUT
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: true
 
-      - *PYTHON
+      - name: Set up Python
+        uses: actions/setup-python@v1
 
-      - *PYTHON_DEPS
+      # pfsshell uses meson and ninja; we integrated them into the Rust build, but still need to install them
+      - name: Set up meson and ninja
+        uses: BSFishy/pip-action@v1
+        with:
+          packages: |
+            meson
+            ninja
 
       - name: Clippy
         uses: actions-rs/clippy-check@v1
@@ -53,11 +60,21 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - *CHECKOUT
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: true
 
-      - *PYTHON
+      - name: Set up Python
+        uses: actions/setup-python@v1
 
-      - *PYTHON_DEPS
+      # pfsshell uses meson and ninja; we integrated them into the Rust build, but still need to install them
+      - name: Set up meson and ninja
+        uses: BSFishy/pip-action@v1
+        with:
+          packages: |
+            meson
+            ninja
 
       - name: Test & Coverage Reporting
         uses: actions-rs/tarpaulin@v0.1
