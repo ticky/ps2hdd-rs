@@ -575,9 +575,8 @@ mod tests {
             Err(message) => panic!(message),
         };
 
-        match ps2hdd.initialize() {
-            Ok(_) => (),
-            Err(message) => panic!(message),
+        if let Err(message) = ps2hdd.initialize() {
+            panic!(message);
         }
 
         let partitions = match ps2hdd.list_partitions() {
@@ -630,15 +629,15 @@ mod tests {
             Err(message) => panic!(message),
         };
 
-        match ps2hdd.initialize() {
-            Ok(_) => (),
-            Err(message) => panic!(message),
-        };
+        if let Err(message) = ps2hdd.initialize() {
+            panic!(message);
+        }
 
-        match ps2hdd.create_partition("TESTPART", FormattablePartitionKind::PFS, 128) {
-            Ok(_) => (),
-            Err(message) => panic!(message),
-        };
+        if let Err(message) =
+            ps2hdd.create_partition("TESTPART", FormattablePartitionKind::PFS, 128)
+        {
+            panic!(message);
+        }
 
         let partitions = match ps2hdd.list_partitions() {
             Ok(list) => list,
@@ -695,15 +694,15 @@ mod tests {
             Err(message) => panic!(message),
         };
 
-        match ps2hdd.initialize() {
-            Ok(_) => (),
-            Err(message) => panic!(message),
-        };
+        if let Err(message) = ps2hdd.initialize() {
+            panic!(message);
+        }
 
-        match ps2hdd.create_partition("TESTPART", FormattablePartitionKind::PFS, 128) {
-            Ok(_) => (),
-            Err(message) => panic!(message),
-        };
+        if let Err(message) =
+            ps2hdd.create_partition("TESTPART", FormattablePartitionKind::PFS, 128)
+        {
+            panic!(message);
+        }
 
         let pfs = match ps2hdd.mount_pfs("TESTPART") {
             Ok(pfs) => pfs,
