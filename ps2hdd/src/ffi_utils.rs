@@ -31,11 +31,15 @@ where
     F: Fn(std::os::raw::c_int) -> bool,
 {
     if f(result) {
-        let err = unsafe { std::ffi::CStr::from_ptr(libc::strerror(-result)) }
-            .to_str()
-            // TODO: Make this return a different err?
-            .expect("could not convert strerror message a String");
-        return Err(format!("{}: {}, {}", err_message, result, err));
+        match unsafe { std::ffi::CStr::from_ptr(libc::strerror(-result)) }.to_str() {
+            Ok(err) => return Err(format!("{}: {}, {}", err_message, result, err)),
+            Err(error) => {
+                return Err(format!(
+                    "could not convert strerror message a String: {}",
+                    error
+                ))
+            }
+        }
     }
 
     Ok(result)
