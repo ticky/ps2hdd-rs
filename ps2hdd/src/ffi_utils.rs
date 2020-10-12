@@ -44,3 +44,70 @@ where
 
     Ok(result)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn return_ok_on_zeroes() {
+        assert_eq!(
+            ok_on_zero_or_strerror(0, "This message should not be returned"),
+            Ok(0)
+        );
+
+        assert_eq!(
+            ok_on_nonnegative_or_strerror(0, "This message should not be returned"),
+            Ok(0)
+        );
+    }
+
+    #[test]
+    fn return_err_on_positives() {
+        assert_eq!(
+            ok_on_zero_or_strerror(-libc::EPERM, "This message should be returned"),
+            Err("This message should be returned: -1, Operation not permitted".to_string())
+        );
+
+        assert_eq!(
+            ok_on_zero_or_strerror(-libc::EACCES, "This message should be returned"),
+            Err("This message should be returned: -13, Permission denied".to_string())
+        );
+    }
+
+    #[test]
+    fn return_ok_on_positives() {
+        assert_eq!(
+            ok_on_nonnegative_or_strerror(10, "This message should not be returned"),
+            Ok(10)
+        );
+
+        assert_eq!(
+            ok_on_nonnegative_or_strerror(123, "This message should not be returned"),
+            Ok(123)
+        );
+    }
+
+    #[test]
+    fn return_err_on_negatives() {
+        assert_eq!(
+            ok_on_zero_or_strerror(-libc::EPERM, "This message should be returned"),
+            Err("This message should be returned: -1, Operation not permitted".to_string())
+        );
+
+        assert_eq!(
+            ok_on_zero_or_strerror(-libc::EACCES, "This message should be returned"),
+            Err("This message should be returned: -13, Permission denied".to_string())
+        );
+
+        assert_eq!(
+            ok_on_nonnegative_or_strerror(-libc::EIO, "This message should be returned"),
+            Err("This message should be returned: -5, Input/output error".to_string())
+        );
+
+        assert_eq!(
+            ok_on_nonnegative_or_strerror(-libc::EBUSY, "This message should be returned"),
+            Err("This message should be returned: -16, Resource busy".to_string())
+        );
+    }
+}
