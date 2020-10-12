@@ -71,19 +71,24 @@ impl PS2HDD {
             return Err(format!("{}: No such file", path.as_ref().display()));
         }
 
-        let path_str_result = path.as_ref().to_str();
+        let path_str = match path.as_ref().to_str() {
+            Some(str) => str,
+            None => {
+                IS_DEVICE_ACTIVE.swap(false, std::sync::atomic::Ordering::Relaxed);
+                return Err("could not convert path to slice".to_string());
+            }
+        };
 
-        if path_str_result.is_none() {
-            IS_DEVICE_ACTIVE.swap(false, std::sync::atomic::Ordering::Relaxed);
-            return Err("Path could not be converted to a C String".to_string());
-        }
-
-        // TODO: Make this return an Err
-        let path_str = path_str_result.expect("path_str is none but unwrapping failed?");
-
-        let name_slice = std::ffi::CString::new(path_str)
-            // TODO: Make this return an Err
-            .expect("could not convert atad_device_path slice to C String");
+        let name_slice = match std::ffi::CString::new(path_str) {
+            Ok(name) => name,
+            Err(error) => {
+                IS_DEVICE_ACTIVE.swap(false, std::sync::atomic::Ordering::Relaxed);
+                return Err(format!(
+                    "could not convert path slice to C String: {}",
+                    error.to_string()
+                ));
+            }
+        };
 
         let length = name_slice.as_bytes().len();
 
@@ -106,15 +111,21 @@ impl PS2HDD {
                 }
             });
 
-        let after_path = unsafe { std::ffi::CStr::from_ptr(ps2hdd_sys::atad_device_path.as_ptr()) }
-            .to_str()
-            // TODO: Make this return an Err
-            .expect("could not convert the updated device path to a String");
-        // TODO: Make this return an Err
-        assert_eq!(
-            after_path, path_str,
-            "updating the device path variable didn't work, weird!"
-        );
+        match unsafe { std::ffi::CStr::from_ptr(ps2hdd_sys::atad_device_path.as_ptr()) }.to_str() {
+            Ok(after_path) => {
+                if path_str != after_path {
+                    IS_DEVICE_ACTIVE.swap(false, std::sync::atomic::Ordering::Relaxed);
+                    return Err("updating the device path variable didn't work, weird!".to_string());
+                }
+            }
+            Err(error) => {
+                IS_DEVICE_ACTIVE.swap(false, std::sync::atomic::Ordering::Relaxed);
+                return Err(format!(
+                    "could not convert the updated device path to a String: {}",
+                    error
+                ));
+            }
+        };
 
         // _init_apa can theoretically return nonzero in these cases:
         //
@@ -240,7 +251,11 @@ impl PS2HDD {
     /// iterator, all entries are fetched upfront, due to the underlying
     /// driver involving internal state we can't fully rely on.
     pub fn list_partitions(&self) -> Result<Vec<PartEntry>, String> {
-        let path = std::ffi::CString::new("hdd0:").expect("couldn't convert string");
+        let path = match std::ffi::CString::new("hdd0:") {
+            Ok(path) => path,
+            Err(error) => return Err(format!("couldn't convert string: {}", error)),
+        };
+
         let mut temp_dirent: ps2hdd_sys::iox_dirent_t = unsafe { std::mem::zeroed() };
         let mut dirents = Vec::new();
 
@@ -253,10 +268,17 @@ impl PS2HDD {
             let result = unsafe { ps2hdd_sys::iomanx_dread(device_handle, &mut temp_dirent) };
 
             if result < 0 {
-                let name = unsafe { std::ffi::CStr::from_ptr(temp_dirent.name.as_ptr()) }
-                    .to_str()
-                    .expect("list_partitions: could not convert the partition name to a String");
-                return Err(format!("Failed to list partitions: {} {}", result, name));
+                match unsafe { std::ffi::CStr::from_ptr(temp_dirent.name.as_ptr()) }.to_str() {
+                    Ok(name) => {
+                        return Err(format!("Failed to list partitions: {} {}", result, name))
+                    }
+                    Err(error) => {
+                        return Err(format!(
+                            "could not convert the partition name to a String: {}",
+                            error
+                        ))
+                    }
+                }
             }
 
             result > 0
@@ -324,7 +346,11 @@ impl PS2HDD {
             partition_kind.as_apa_fs_type()
         );
 
-        let mkpart_path = std::ffi::CString::new(mkpart_strpath).expect("couldn't convert string");
+        let mkpart_path = match std::ffi::CString::new(mkpart_strpath) {
+            Ok(path) => path,
+            Err(error) => return Err(format!("couldn't convert string: {}", error)),
+        };
+
         let open_flags = ps2hdd_sys::IOMANX_O_RDWR as i32 | ps2hdd_sys::IOMANX_O_CREAT as i32;
 
         let partition_handle = ok_on_nonnegative_or_strerror(
@@ -404,7 +430,7 @@ impl PS2HDD {
 
         self.pfs
             .as_ref()
-            .ok_or("Failed to retrieve reference".to_string())
+            .ok_or_else(|| "Failed to retrieve reference".to_string())
     }
 
     /// Unmount the currently-mounted PFS device.
@@ -435,7 +461,7 @@ impl PS2HDD {
 
         self.hdlfs
             .as_ref()
-            .ok_or("Failed to retrieve reference".to_string())
+            .ok_or_else(|| "Failed to retrieve reference".to_string())
     }
 
     /// Unmount the currently-mounted HDLFS device.
@@ -685,7 +711,7 @@ mod tests {
         };
 
         assert_eq!(
-            pfs.partition_name,"TESTPART",
+            pfs.partition_name, "TESTPART",
             "Unexpected partition reference"
         );
 
