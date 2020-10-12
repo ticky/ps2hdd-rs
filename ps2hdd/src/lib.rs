@@ -542,6 +542,7 @@ mod tests {
                 message
             )),
         };
+
         assert_eq!(
             instance_2.unwrap_err(),
             "Only one PS2HDD instance may be mounted at a time",
