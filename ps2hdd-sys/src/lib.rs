@@ -28,6 +28,24 @@ impl std::fmt::Debug for iox_dirent_t {
     }
 }
 
+impl std::cmp::PartialEq for iox_dirent_t {
+    fn eq(&self, other: &Self) -> bool {
+        let self_nul_pos = match self.name.iter().position(|&c| c == 0x00) {
+            Some(index) => index,
+            None => self.name.len(),
+        };
+
+        let other_nul_pos = match other.name.iter().position(|&c| c == 0x00) {
+            Some(index) => index,
+            None => other.name.len(),
+        };
+
+        self.name[..self_nul_pos] == other.name[..other_nul_pos]
+            && self.stat == other.stat
+            && self.unknown == other.unknown
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

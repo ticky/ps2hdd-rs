@@ -687,39 +687,6 @@ mod tests {
 
     #[test]
     #[serial(atad_device_path)]
-    fn can_mount_created_partition() {
-        let demo_file_path = "hdd.img";
-
-        let mut ps2hdd = match PS2HDD::create(demo_file_path, DEMO_FILE_SIZE) {
-            Ok(ps2hdd) => ps2hdd,
-            Err(message) => panic!(message),
-        };
-
-        if let Err(message) = ps2hdd.initialize() {
-            panic!(message);
-        }
-
-        if let Err(message) =
-            ps2hdd.create_partition("TESTPART", FormattablePartitionKind::PFS, 128)
-        {
-            panic!(message);
-        }
-
-        let pfs = match ps2hdd.mount_pfs("TESTPART") {
-            Ok(pfs) => pfs,
-            Err(message) => panic!(message),
-        };
-
-        assert_eq!(
-            pfs.partition_name, "TESTPART",
-            "Unexpected partition reference"
-        );
-
-        std::fs::remove_file(demo_file_path).expect("could not delete demo file");
-    }
-
-    #[test]
-    #[serial(atad_device_path)]
     fn should_err_on_missing_file() {
         let nonexistent_file_path = "nonexistent.img";
 
