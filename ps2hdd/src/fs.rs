@@ -7,7 +7,7 @@ use crate::partition_kind::PartitionKind;
 
 #[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
 pub struct FileType {
-    mode: std::os::raw::c_uint,
+    pub mode: std::os::raw::c_uint,
 }
 
 impl FileType {
@@ -50,7 +50,7 @@ impl DirEntry {
     }
 
     pub fn file_type(&self) -> Result<FileType, String> {
-        unimplemented!()
+        Ok(FileType { mode: self.entry.stat.mode })
     }
 
     fn name_bytes(&self) -> &[u8] {
